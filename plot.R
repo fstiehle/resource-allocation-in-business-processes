@@ -42,16 +42,16 @@ ggplot(by_country, aes(x=n, y=Country)) +
   ylab("Country") +
   xlab("Number of Publications") + 
   scale_x_continuous(n.breaks=max(by_country$n), minor_breaks = NULL)
-ggsave("countries.PDF", width = 4, height = 2)
+ggsave("countries.PDF", width = 5, height = 3)
 
 # By year
 ggplot(data, aes(x=Year)) +
   geom_bar(fill=colors[1]) +
-  ylab("Publication Year") +
-  xlab("Number of Publications") + 
+  xlab("Publication Year") +
+  ylab("Number of Publications") + 
   scale_x_date(date_labels = "%Y", breaks = "3 years", minor_breaks = NULL) +
   scale_y_continuous(n.breaks=max(by_country$n), minor_breaks = NULL)
-ggsave("years.PDF", width = 4, height = 2)
+ggsave("years.PDF", width = 5, height = 3)
 
 # Optimization goals
 goals <- data %>%
