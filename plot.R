@@ -139,13 +139,14 @@ mat$`Evaluation Type` <- factor(mat$ID,
                    ordered = TRUE)
 
 ggplot(mat, aes(y=factor(mat$`Evaluation Type`, level=order_y), x=factor(mat$`Prototypical implementation type`, level=order_x), size=n)) +
-  geom_point(colour=colors[3], fill=colors[2], alpha=0.7, shape=21) + 
-  scale_size(range = c(5, 20)) +
+  geom_point(colour=colors[1], fill=colors[2], alpha=0.8, shape=21) + 
+  scale_size(range = c(5, 15)) +
   guides(size="none") +
-  geom_text(aes(label = n), colour = "white", size=mat$n*0.8 + 2, check_overlap = T) +
-  xlab("Implementation type") +
+  geom_text(aes(label = n), colour = "white", size=mat$n*0.5 + 2, check_overlap = T) +
+  xlab("Implementation") +
   ylab("Evaluation Type") +
-  theme(axis.text.x = element_text(angle =25, hjust=1))
+  theme(axis.text.x = element_text(angle =25, hjust=1)) +
+  theme(axis.title.x = element_text(vjust=-1)) 
 ggsave("evaluation.PDF", width = 5, height = 3, dpi = 300)
 
 #ggplot(data, aes(x=str_to_title(Maturity), fill=str_to_title(Maturity))) +
