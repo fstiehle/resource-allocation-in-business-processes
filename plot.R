@@ -30,7 +30,7 @@ other <- by_country %>%
 by_country <- by_country %>%
   filter(! Country %in% other$Country)
   
-rbind(by_country, data.frame(Country="Other (<2)", n=count(other)))
+by_country <- rbind(data.frame(Country="Other (<2)", n=count(other)), by_country)
 by_country$ID <- seq.int(nrow(by_country))
 by_country$Country <- factor(by_country$ID, 
                              labels=by_country$Country,
@@ -109,9 +109,28 @@ ggsave("solution_technique.PDF", width = 8, height = 2)
 # we do this for ordering
 mat <- select(data, `Evaluation Type`, `Prototypical implementation type`)
 mat <- mat %>%
-  group_by(`Evaluation Type`) %>%
+  group_by(`Evaluation Type`, `Prototypical implementation type`) %>%
   mutate(n = n()) %>%
   arrange(n)
+
+mat$`Prototypical implementation type` = str_to_title(mat$`Prototypical implementation type`)
+mat$`Evaluation Type` = str_to_title(mat$`Evaluation Type`)
+
+order_y = str_to_title(c(
+  "No evaluation",
+  "Toy example",
+  "Case study",
+  "(Comp.) sim. experiments",
+  "(Comp.) experiments",
+  "Experiments + Case study"
+))
+order_x = str_to_title(c(
+  "no implementation",
+  "not accessible",
+  "pseudocode",
+  "not acc., pseudoc.",
+  "available"
+))
 
 mat$ID = seq.int(nrow(mat))
 mat$`Evaluation Type` <- factor(mat$ID, 
@@ -119,22 +138,21 @@ mat$`Evaluation Type` <- factor(mat$ID,
                    levels=mat$ID,
                    ordered = TRUE)
 
-ggplot(mat, aes(y=`Evaluation Type`, fill=`Prototypical implementation type`)) +
-  geom_bar() +
-  scale_fill_manual(name = "Prototype", values = c("available"= colors_rating[5],
-                                                       "not acc., pseudoc." = colors_rating[4],
-                                                       "pseudocode" = colors_rating[3],
-                                                       "not accessible" = colors_rating[2],
-                                                       "no" = colors_rating[1])) +
-  scale_x_continuous(breaks=pretty_breaks(n=floor(max(mat$n)/2)), minor_breaks = NULL) +
-  xlab("Number of Publications")
-ggsave("evaluation.PDF", width = 8, height = 2)
+ggplot(mat, aes(y=factor(mat$`Evaluation Type`, level=order_y), x=factor(mat$`Prototypical implementation type`, level=order_x), size=n)) +
+  geom_point(colour=colors[3], fill=colors[2], alpha=0.7, shape=21) + 
+  scale_size(range = c(5, 20)) +
+  guides(size="none") +
+  geom_text(aes(label = n), colour = "white", size=mat$n*0.8 + 2, check_overlap = T) +
+  xlab("Implementation type") +
+  ylab("Evaluation Type") +
+  theme(axis.text.x = element_text(angle =25, hjust=1))
+ggsave("evaluation.PDF", width = 5, height = 3, dpi = 300)
 
-ggplot(data, aes(x=str_to_title(Maturity), fill=str_to_title(Maturity))) +
-  geom_bar() +
-  scale_fill_manual(name = element_blank(), values = rev(tail(colors_rating, -1))) +
-  xlab("Maturity Level") +
-  ylab("Number of Publications") +
-  theme(legend.position="none") + 
-  geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "#353839")
-ggsave("maturity.PDF", width = 3, height = 2)
+#ggplot(data, aes(x=str_to_title(Maturity), fill=str_to_title(Maturity))) +
+#  geom_bar() +
+#  scale_fill_manual(name = element_blank(), values = rev(tail(colors_rating, -1))) +
+#  xlab("Maturity Level") +
+#  ylab("Number of Publications") +
+#  theme(legend.position="none") + 
+#  geom_text(aes(label = ..count..), stat = "count", vjust = 1.5, colour = "#353839")
+#ggsave("maturity.PDF", width = 3, height = 2)
