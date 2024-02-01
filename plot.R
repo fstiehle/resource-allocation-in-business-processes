@@ -11,7 +11,7 @@ library(stringr)
 data <- read_csv("Literature_review_collection.xlsx - DataExtraction.csv", 
   col_types = cols(Title = col_character(), 
   Year = col_date(format = "%Y")),
-  skip = 2)
+  skip = 1)
 
 colors = c("#8CCCEC", "#392C87", "#61A899", "#36683C", "#DACC82", "#999944")
 colors_rating = c("#D86933", "#E49845", "#EEC35A", "#F6F171", "#CEDFB0", "#9FC094")
@@ -50,7 +50,7 @@ ggplot(data, aes(x=Year)) +
   xlab("Publication Year") +
   ylab("Number of Publications") + 
   scale_x_date(date_labels = "%Y", breaks = "3 years", minor_breaks = NULL) +
-  scale_y_continuous(n.breaks=max(by_country$n), minor_breaks = NULL)
+  scale_y_continuous(n.breaks=max(by_country$n), minor_breaks = NULL) 
 ggsave("years.PDF", width = 5, height = 3)
 
 # Optimization goals
@@ -69,6 +69,7 @@ ggplot(goals, aes(y=Goal, x=n, fill=`Goal Type`)) +
   geom_bar(stat='Identity') +
   scale_fill_manual(name = element_blank(), values = colors) +
   scale_x_continuous(breaks=pretty_breaks(n=floor(max(goals$n)/2)), minor_breaks = NULL) +
+  geom_text(aes(label = n), stat = "identity", hjust = 2, colour = "white" ,  size=2) +
   xlab("Number of Publications")
 ggsave("goals.PDF", width = 6, height = 2)
 
@@ -81,29 +82,27 @@ ggplot(data, aes(x=`Allocation capability`)) +
 ggsave("allocation_small.PDF", width = 3, height = 2)
 
 # Solution techniques grouped by their allocation goal
-sol <- select(data, Goal, `Resource allocation technique type`)
+sol <- select(data, `Resource allocation technique type`)
 sol$t <- sol$`Resource allocation technique type`
-sol$t[sol$t == "Rule" | sol$t == "Logic programming"] <- "Rule or Logic programming" 
-sol$t[sol$t == "Machine Learning" | sol$t == "Genetic algorithm" | sol$t == "Trained rule"] <- "ML, Genetic or Trained" 
 
-# we do this for ordering
-sol <- sol %>%
-  group_by(Goal) %>%
-  mutate(n = n()) %>%
-  arrange(n)
+# Count occurrences
+sol_counts <- table(sol$t)
 
-sol$ID = seq.int(nrow(sol))
-sol$Goal <- factor(sol$ID, 
-                     labels=sol$Goal,
-                     levels=sol$ID,
-                     ordered = TRUE)
+# Create a data frame for plotting
+sol_df <- data.frame(t = names(sol_counts), n = as.numeric(sol_counts))
 
-ggplot(sol, aes(y=Goal, fill=t)) +
-  geom_bar() +
-  scale_fill_manual(name = element_blank(), values = colors) +
-  scale_x_continuous(breaks=pretty_breaks(n=floor(max(sol$n)/2)), minor_breaks = NULL) +
-  xlab("Number of Publications")
-ggsave("solution_technique.PDF", width = 8, height = 2)
+# Sort the data frame by count in descending order
+sol_df <- sol_df[order(sol_df$n, decreasing = TRUE), ]
+
+# Plotting using ggplot
+ggplot(sol_df, aes(x = n, y = reorder(t, n), fill = t)) +
+  geom_bar(stat = 'identity', show.legend = FALSE) +
+  scale_fill_manual(name = element_blank(), values = c("grey",colors[5],colors[3],colors[1],colors[2],colors[4],"#5D8A7D","#5D8A7D",colors[1])) +
+  scale_x_continuous(breaks = pretty_breaks(n = floor(max(sol_df$n) / 2)), minor_breaks = seq(length.out = max(sol_df$n), from = 0, by = 1)) +
+  geom_text(aes(label = n), stat = "identity", hjust = 2, colour = "white" ,  size=2) +
+  xlab("Number of Publications") +
+  ylab("Solution Technique")
+ ggsave("solution_technique.PDF", width = 5, height = 2)
 
 # Maturity levels
 # we do this for ordering
